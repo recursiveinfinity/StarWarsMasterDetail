@@ -7,7 +7,7 @@ import java.util.List;
 public interface HomeContract {
     interface Presenter {
         void loadAllFilms();
-        void onPlanetSelected();
+        void onFilmSelected(Result result);
     }
 
     interface View {

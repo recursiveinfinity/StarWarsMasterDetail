@@ -11,6 +11,9 @@ import android.widget.TextView;
 
 import com.example.starwarsmasterdetail.dummy.DummyContent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A fragment representing a single Item detail screen.
  * This fragment is either contained in a {@link ItemListActivity}
@@ -22,12 +25,11 @@ public class ItemDetailFragment extends Fragment {
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
+    public static final String PLANET_NAME = "planet_name";
+    public static final String FILMS_LIST = "films_list";
 
-    /**
-     * The dummy content this fragment is presenting.
-     */
-    private DummyContent.DummyItem mItem;
+    private String name = "";
+    private final ArrayList<String> films = new ArrayList<>();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -39,18 +41,10 @@ public class ItemDetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
-
-            Activity activity = this.getActivity();
-            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.content);
-            }
+        if (getArguments() != null && getArguments().containsKey(PLANET_NAME)
+                && getArguments().containsKey(FILMS_LIST)) {
+            name = getArguments().getString(PLANET_NAME);
+            films.addAll(getArguments().getStringArrayList(FILMS_LIST));
         }
     }
 
@@ -59,10 +53,15 @@ public class ItemDetailFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.item_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.item_detail)).setText(mItem.details);
+        TextView tvResult = rootView.findViewById(R.id.item_detail);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String film : films) {
+            stringBuilder.append(film);
+            stringBuilder.append("\n");
         }
+        stringBuilder.append(name);
+        tvResult.setText(stringBuilder.toString());
 
         return rootView;
     }

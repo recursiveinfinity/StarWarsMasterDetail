@@ -1,9 +1,9 @@
 package com.example.starwarsmasterdetail;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.starwarsmasterdetail.dummy.DummyContent;
+import com.example.starwarsmasterdetail.home.FilmsAdapter;
 import com.example.starwarsmasterdetail.home.HomeContract;
 import com.example.starwarsmasterdetail.home.HomePresenter;
 import com.example.starwarsmasterdetail.model.Result;
@@ -29,15 +29,14 @@ import java.util.List;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class ItemListActivity extends AppCompatActivity implements HomeContract.View {
-
+public class ItemListActivity extends AppCompatActivity implements HomeContract.View, FilmsAdapter.OnItemSelectedListener {
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
      * device.
      */
     private boolean mTwoPane;
     private HomeContract.Presenter presenter;
-    private final SimpleItemRecyclerViewAdapter adapter = new SimpleItemRecyclerViewAdapter();
+    private final FilmsAdapter adapter = new FilmsAdapter(this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +77,25 @@ public class ItemListActivity extends AppCompatActivity implements HomeContract.
 
     @Override
     public void showPlanetDetails(String name, List<String> films) {
+        if (mTwoPane) {
+            ItemDetailFragment itemDetailFragment = new ItemDetailFragment();
+            Bundle bundle = new Bundle();
+            bundle.putString(ItemDetailFragment.PLANET_NAME, name);
+            bundle.putStringArrayList(ItemDetailFragment.FILMS_LIST, (ArrayList) films);
 
+            itemDetailFragment.setArguments(bundle);
+
+
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.item_detail_container, itemDetailFragment)
+                    .commit();
+
+        } else {
+            Intent intent = new Intent(this, ItemDetailActivity.class);
+            intent.putExtra(ItemDetailFragment.PLANET_NAME, name);
+            intent.putStringArrayListExtra(ItemDetailFragment.FILMS_LIST, (ArrayList)films);
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -86,70 +103,9 @@ public class ItemListActivity extends AppCompatActivity implements HomeContract.
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    public static class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
-
-        private final List<Result> results;
-
-        /*private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
-                if (mTwoPane) {
-                    Bundle arguments = new Bundle();
-                    arguments.putString(ItemDetailFragment.ARG_ITEM_ID, item.id);
-                    ItemDetailFragment fragment = new ItemDetailFragment();
-                    fragment.setArguments(arguments);
-                    mParentActivity.getSupportFragmentManager().beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit();
-                } else {
-                    Context context = view.getContext();
-                    Intent intent = new Intent(context, ItemDetailActivity.class);
-                    intent.putExtra(ItemDetailFragment.ARG_ITEM_ID, item.id);
-
-                    context.startActivity(intent);
-                }
-            }
-        };*/
-
-        SimpleItemRecyclerViewAdapter() {
-            results = new ArrayList<>();
-        }
-
-        public void setData(List<Result> data) {
-            results.clear();
-            results.addAll(data);
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_list_content, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mIdView.setText(results.get(position).getTitle());
-            holder.mContentView.setText(results.get(position).getOpeningCrawl());
-        }
-
-        @Override
-        public int getItemCount() {
-            return results.size();
-        }
-
-        class ViewHolder extends RecyclerView.ViewHolder {
-            final TextView mIdView;
-            final TextView mContentView;
-
-            ViewHolder(View view) {
-                super(view);
-                mIdView =  view.findViewById(R.id.id_text);
-                mContentView = view.findViewById(R.id.content);
-            }
-        }
+    @Override
+    public void onItemSelected(Result result) {
+        presenter.onFilmSelected(result);
     }
+
 }
